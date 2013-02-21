@@ -1,4 +1,4 @@
-.' _configuration:
+.. _configuration:
 
 ============================
  Configuration and defaults
@@ -199,6 +199,10 @@ Can be one of the following:
     Use `Cassandra`_ to store the results.
     See :ref:`conf-cassandra-result-backend`.
 
+* ironcache
+    Use `IronCache`_ to store the results.
+    See :ref:`conf-ironcache-result-backend`.
+
 .. warning:
 
     While the AMQP result backend is very efficient, you must make sure
@@ -362,9 +366,9 @@ Using multiple memcached servers:
 .. setting:: CELERY_CACHE_BACKEND_OPTIONS
 
 
-The "dummy" backend stores the cache in memory only:
+The "memory" backend stores the cache in memory only:
 
-    CELERY_CACHE_BACKEND = "dummy"
+    CELERY_CACHE_BACKEND = "memory"
 
 CELERY_CACHE_BACKEND_OPTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -586,6 +590,33 @@ Example configuration
         'max_retries': 10
     }
 
+
+.. _conf-ironcache-result-backend:
+
+IronCache backend settings
+--------------------------
+
+.. note::
+
+    The Cassandra backend requires the :mod:`iron_celery` library:
+    http://pypi.python.org/pypi/iron_celery
+
+    To install the iron_celery package use `pip` or `easy_install`:
+
+    .. code-block:: bash
+
+        $ pip install iron_celery
+
+IronCache is configured via the URL provided in :setting:`CELERY_RESULT_BACKEND`, for example::
+
+    CELERY_RESULT_BACKEND = 'ironcache://project_id:token@'
+
+Or to change the cache name::
+
+    ironcache:://project_id:token@/awesomecache
+
+For more information, see: https://github.com/iron-io/iron_celery
+
 .. _conf-messaging:
 
 Message Routing
@@ -785,8 +816,22 @@ and this requires the :mod:`amqp` module:
     $ pip install amqp
 
 The default heartbeat value is 10 seconds,
-the heartbeat will then be monitored at double the rate of the heartbeat value
+the heartbeat will then be monitored at the interval specified
+by the :setting:`BROKER_HEARTBEAT_CHECKRATE` setting, which by default is
+double the rate of the heartbeat value
 (so for the default 10 seconds, the heartbeat is checked every 5 seconds).
+
+.. setting:: BROKER_HEARTBEAT_CHECKRATE
+
+BROKER_HEARTBEAT_CHECKRATE
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+:transports supported: ``pyamqp``
+
+At intervals the worker will monitor that the broker has not missed
+too many heartbeats.  The rate at which this is checked is calculated
+by dividing the :setting:`BROKER_HEARTBEAT` value with this value,
+so if the heartbeat is 10.0 and the rate is the default 2.0, the check
+will be performed every 5 seconds (twice the heartbeat sending rate).
 
 .. setting:: BROKER_USE_SSL
 

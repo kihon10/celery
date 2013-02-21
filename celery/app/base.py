@@ -77,8 +77,8 @@ class Celery(object):
     def __init__(self, main=None, loader=None, backend=None,
                  amqp=None, events=None, log=None, control=None,
                  set_as_current=True, accept_magic_kwargs=False,
-                 tasks=None, broker=None, include=None, fixups=None,
-                 changes=None, **kwargs):
+                 tasks=None, broker=None, include=None, changes=None,
+                 fixups=None, **kwargs):
         self.clock = LamportClock()
         self.main = main
         self.amqp_cls = amqp or self.amqp_cls
@@ -446,7 +446,7 @@ class Celery(object):
         when unpickling."""
         return {
             'main': self.main,
-            'changes': self.conf.changes,
+            'changes': self.conf._prepare_pickleable_changes(),
             'loader': self.loader_cls,
             'backend': self.backend_cls,
             'amqp': self.amqp_cls,
@@ -459,9 +459,10 @@ class Celery(object):
 
     def __reduce_args__(self):
         """Deprecated method, please use :meth:`__reduce_keys__` instead."""
-        return (self.main, self.conf.changes, self.loader_cls,
-                self.backend_cls, self.amqp_cls, self.events_cls,
-                self.log_cls, self.control_cls, self.accept_magic_kwargs)
+        return (self.main, self.conf._prepare_pickleable_changes(),
+                self.loader_cls, self.backend_cls, self.amqp_cls,
+                self.events_cls, self.log_cls, self.control_cls,
+                self.accept_magic_kwargs)
 
     @cached_property
     def Worker(self):
